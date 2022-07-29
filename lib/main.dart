@@ -109,26 +109,74 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  bool _showChart = false;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Personal Expenses'),
-        actions: [
-          IconButton(
-            onPressed: () => _startAddNewTransaction(context),
-            icon: const Icon(Icons.add),
-          )
-        ],
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    final appBar = AppBar(
+      title: const Text('Personal Expenses'),
+      actions: [
+        IconButton(
+          onPressed: () => _startAddNewTransaction(context),
+          icon: const Icon(Icons.add),
+        )
+      ],
+    );
+
+    final txList = SizedBox(
+      height: (MediaQuery.of(context).size.height -
+              appBar.preferredSize.height -
+              MediaQuery.of(context).padding.top) *
+          0.7,
+      child: TransactionList(
+        transactions: _userTransaction,
+        removeTransaction: _removeTransaction,
       ),
+    );
+
+    return Scaffold(
+      appBar: appBar,
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Chart(recentTransactions: _recentTransaction),
-            TransactionList(
-              transactions: _userTransaction,
-              removeTransaction: _removeTransaction,
-            )
+            if (isLandscape)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Show Chart"),
+                  Switch(
+                    value: _showChart,
+                    onChanged: (val) {
+                      setState(() {
+                        _showChart = val;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            if (!isLandscape)
+              SizedBox(
+                height: (MediaQuery.of(context).size.height -
+                        appBar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.3,
+                child: Chart(recentTransactions: _recentTransaction),
+              ),
+            if (!isLandscape) txList,
+            if (isLandscape)
+              _showChart
+                  ? SizedBox(
+                      height: (MediaQuery.of(context).size.height -
+                              appBar.preferredSize.height -
+                              MediaQuery.of(context).padding.top) *
+                          0.7,
+                      child: Chart(recentTransactions: _recentTransaction),
+                    )
+                  : txList
           ],
         ),
       ),
